@@ -1,6 +1,10 @@
 package group
 
-import "net/http"
+import (
+	"github.com/soyking/douban-group-spider/proxy"
+	"net/http"
+	"net/url"
+)
 
 var (
 	httpClient = &http.Client{
@@ -10,3 +14,14 @@ var (
 		},
 	}
 )
+
+func SetProxy(b proxy.Balancer) {
+	if b != nil {
+		// 设置代理
+		httpClient.Transport = &http.Transport{
+			Proxy: func(r *http.Request) (*url.URL, error) {
+				return b.Get(r), nil
+			},
+		}
+	}
+}

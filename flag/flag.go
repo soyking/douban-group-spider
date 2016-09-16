@@ -5,6 +5,8 @@ import (
 )
 
 const (
+	NO_FILE = "NO_FILE"
+
 	// ==== DOUBAN Setting ====
 	FLAG_GROUPS_NAME    = "groups"
 	FLAG_GROUPS_DEFAULT = "beijingzufang"
@@ -55,19 +57,23 @@ const (
 
 	FLAG_TOPICS_CONCURRENCY_NAME    = "t_con"
 	FLAG_TOPICS_CONCURRENCY_DEFAULT = 1
-	FLAG_TOPICS_CONCURRENCY_USAGE   = " for topics crawling"
+	FLAG_TOPICS_CONCURRENCY_USAGE   = "concurrency for topics crawling"
+
+	FLAG_PROXY_NAME    = "proxy"
+	FLAG_PROXY_DEFAULT = NO_FILE
+	FLAG_PROXY_USAGE   = "proxy file, [addr port] split by new line"
 
 	// ==== Filter Setting ====
 	FLAG_AUTHOR_FILTER_NAME    = "author_filter"
-	FLAG_AUTHOR_FILTER_DEFAULT = "NO_FILE"
+	FLAG_AUTHOR_FILTER_DEFAULT = NO_FILE
 	FLAG_AUTHOR_FILTER_USAGE   = "author filter file path, split by new line"
 
 	FLAG_TITLE_FILTER_NAME    = "title_filter"
-	FLAG_TITLE_FILTER_DEFAULT = "NO_FILE"
+	FLAG_TITLE_FILTER_DEFAULT = NO_FILE
 	FLAG_TITLE_FILTER_USAGE   = "title filter file path, split by new line"
 
 	FLAG_CONTENT_FILTER_NAME    = "content_filter"
-	FLAG_CONTENT_FILTER_DEFAULT = "NO_FILE"
+	FLAG_CONTENT_FILTER_DEFAULT = NO_FILE
 	FLAG_CONTENT_FILTER_USAGE   = "content filter file path, split by new line"
 
 	FLAG_REPLY_FILTER_NAME    = "reply_filter"
@@ -99,6 +105,7 @@ type Flag struct {
 	Frequency         int64
 	GroupsConcurrency int
 	TopicsConcurrency int
+	ProxyFile         string
 
 	AuthorFilterFile     string
 	TitleFilterFile      string
@@ -126,6 +133,7 @@ func ParseFlag() *Flag {
 	flag.Int64Var(&f.Frequency, FLAG_FREQUENCY_NAME, FLAG_FREQUENCY_DEFAULT, FLAG_FREQUENCY_USAGE)
 	flag.IntVar(&f.GroupsConcurrency, FLAG_GROUPS_CONCURRENCY_NAME, FLAG_GROUPS_CONCURRENCY_DEFAULT, FLAG_GROUPS_CONCURRENCY_USAGE)
 	flag.IntVar(&f.TopicsConcurrency, FLAG_TOPICS_CONCURRENCY_NAME, FLAG_TOPICS_CONCURRENCY_DEFAULT, FLAG_TOPICS_CONCURRENCY_USAGE)
+	flag.StringVar(&f.ProxyFile, FLAG_PROXY_NAME, FLAG_PROXY_DEFAULT, FLAG_PROXY_USAGE)
 
 	flag.StringVar(&f.AuthorFilterFile, FLAG_AUTHOR_FILTER_NAME, FLAG_AUTHOR_FILTER_DEFAULT, FLAG_AUTHOR_FILTER_USAGE)
 	flag.StringVar(&f.TitleFilterFile, FLAG_TITLE_FILTER_NAME, FLAG_TITLE_FILTER_DEFAULT, FLAG_TITLE_FILTER_USAGE)

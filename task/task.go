@@ -1,9 +1,9 @@
 package task
 
 import (
-	"github.com/soyking/douban-group-spider/group"
 	"github.com/soyking/douban-group-spider/filter"
 	"github.com/soyking/douban-group-spider/flag"
+	"github.com/soyking/douban-group-spider/group"
 	"github.com/soyking/douban-group-spider/storage"
 	"log"
 	"strings"
@@ -31,6 +31,12 @@ func NewTask(f *flag.Flag) (*Task, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	proxy, err := NewProxy(f)
+	if err != nil {
+		return nil, err
+	}
+	group.SetProxy(proxy)
 
 	return &Task{
 		groups:            strings.Split(f.GroupsName, ","),
@@ -66,12 +72,14 @@ func (t *Task) Run() {
 					log.Printf("\t\t[Fail] fetch group: %s err: %s\n", groupName, err.Error())
 				}
 
-				topics = t.filter(topics)
-				err = t.store.Save(topics)
-				if err != nil {
-					log.Printf("\t\t[Fail] save group: %s err: %s\n", groupName, err.Error())
-				} else {
-					log.Printf("\t\t[SUCCESS] group: %s topics %d\n", groupName, len(topics))
+				if len(topics) != 0 {
+					topics = t.filter(topics)
+					err = t.store.Save(topics)
+					if err != nil {
+						log.Printf("\t\t[Fail] save group: %s err: %s\n", groupName, err.Error())
+					} else {
+						log.Printf("\t\t[SUCCESS] group: %s topics %d\n", groupName, len(topics))
+					}
 				}
 
 				wg.Done()
