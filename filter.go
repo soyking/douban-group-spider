@@ -1,4 +1,4 @@
-package task
+package main
 
 import (
 	"errors"
@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func NewFilter(f *flag.Flag) (filter.Filter, error) {
+func newFilter(f *flag.Flag) (filter.Filter, error) {
 	filterFuncs := []filter.FilterFunc{}
 	if f.AuthorFilterFile != flag.FLAG_AUTHOR_FILTER_DEFAULT {
 		authors, err := readLines(f.AuthorFilterFile)

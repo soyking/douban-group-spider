@@ -1,14 +1,19 @@
 package task
 
 import (
+	"errors"
 	"github.com/soyking/douban-group-spider/filter"
-	"github.com/soyking/douban-group-spider/flag"
 	"github.com/soyking/douban-group-spider/group"
 	"github.com/soyking/douban-group-spider/storage"
 	"log"
-	"strings"
 	"sync"
 	"time"
+)
+
+var (
+	ErrorNoGroups = errors.New("no groups")
+	ErrorNoFilter = errors.New("no filter")
+	ErrorNoStore  = errors.New("no store")
 )
 
 type Task struct {
@@ -21,29 +26,33 @@ type Task struct {
 	store             storage.StorageSave
 }
 
-func NewTask(f *flag.Flag) (*Task, error) {
-	filter, err := NewFilter(f)
-	if err != nil {
-		return nil, err
+func NewTask(
+	groups []string,
+	pages int,
+	frequency int64,
+	groupsConcurrency int,
+	topicsConcurrency int,
+	filter filter.Filter,
+	store storage.StorageSave,
+) (*Task, error) {
+	if len(groups) == 0 {
+		return nil, ErrorNoGroups
 	}
 
-	store, err := NewStorage(f)
-	if err != nil {
-		return nil, err
+	if filter == nil {
+		return nil, ErrorNoFilter
 	}
 
-	proxy, err := NewProxy(f)
-	if err != nil {
-		return nil, err
+	if store == nil {
+		return nil, ErrorNoStore
 	}
-	group.SetProxy(proxy)
 
 	return &Task{
-		groups:            strings.Split(f.GroupsName, ","),
-		pages:             f.Pages,
-		frequency:         f.Frequency,
-		groupsConcurrency: f.GroupsConcurrency,
-		topicsConcurrency: f.TopicsConcurrency,
+		groups:            groups,
+		pages:             pages,
+		frequency:         frequency,
+		groupsConcurrency: groupsConcurrency,
+		topicsConcurrency: topicsConcurrency,
 		filter:            filter,
 		store:             store,
 	}, nil

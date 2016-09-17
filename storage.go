@@ -1,4 +1,4 @@
-package task
+package main
 
 import (
 	"github.com/soyking/douban-group-spider/flag"
@@ -7,7 +7,7 @@ import (
 	"github.com/soyking/douban-group-spider/storage/mongo"
 )
 
-func NewStorage(f *flag.Flag) (storage.StorageSave, error) {
+func newStorage(f *flag.Flag) (storage.StorageSave, error) {
 	var store storage.StorageSave
 	var err error
 	if f.MongoDBOn {

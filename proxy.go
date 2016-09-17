@@ -1,4 +1,4 @@
-package task
+package main
 
 import (
 	"errors"
@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func NewProxy(f *flag.Flag) (proxy.Balancer, error) {
+func newProxy(f *flag.Flag) (proxy.Balancer, error) {
 	if f.ProxyFile != flag.FLAG_PROXY_DEFAULT {
 		addrsPorts, err := readLines(f.ProxyFile)
 		if err != nil {
