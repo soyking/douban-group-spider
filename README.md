@@ -28,7 +28,7 @@ go build
   
   # 存储设置      
   -es_addr string
-        默认存储是 ElasticSearch, 默认 127.0.0.1:27017
+        默认存储是 ElasticSearch, 默认 127.0.0.1:9200
   -es_index string
         ElasticSearch 索引, 如果不存在会自动建立 mapping, 默认 db_rent
   -mongo bool
