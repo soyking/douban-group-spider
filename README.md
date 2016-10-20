@@ -54,7 +54,7 @@ go build
   
   # 帖子过滤设置              
   -author_filter string
-        作者过滤文件, 支持名字和连接过滤, 例子 test/block_authors.txt
+        作者过滤文件, 支持名字和链接过滤, 例子 test/block_authors.txt
   -title_filter string
         标题过滤文件, 例子 test/block_titles.txt
   -content_filter string
