@@ -2,12 +2,14 @@ package group
 
 import (
 	"errors"
-	"github.com/PuerkitoBio/goquery"
-	"golang.org/x/net/html"
+	"log"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/PuerkitoBio/goquery"
+	"golang.org/x/net/html"
 )
 
 const PAGE_TOPICS_NUMBER = 25
@@ -32,6 +34,7 @@ func GetTopics(name string, pages int, concurrency ...int) ([]*Topic, error) {
 
 	topics := []*Topic{}
 	for i := 0; i < pages; i++ {
+		log.Printf("\t\t[Info] try to fetch group %s page %d\n", name, i)
 		doc, err := GetGroup(name, i*PAGE_TOPICS_NUMBER)
 		if err != nil {
 			return nil, err
@@ -51,7 +54,7 @@ func GetTopics(name string, pages int, concurrency ...int) ([]*Topic, error) {
 func ParseTopics(doc *goquery.Document, concurrency ...int) ([]*Topic, error) {
 	var topics []*Topic
 	var outErr []string
-	nodes := doc.Find("html body #wrapper div#content div.grid-16-8.clearfix div.article div table.olt tbody tr").Nodes
+	nodes := doc.Find("#content > div > div.article > div:nth-child(2) > table > tbody > tr").Nodes
 
 	con := 1
 	if len(concurrency) > 0 {
@@ -63,7 +66,7 @@ func ParseTopics(doc *goquery.Document, concurrency ...int) ([]*Topic, error) {
 	for i := range nodes {
 		topicsChan <- 1
 		wg.Add(1)
-		go func(s *goquery.Selection) {
+		go func(i int, s *goquery.Selection) {
 			topic, err := ParseTopic(s)
 			if err != nil {
 				outErr = append(outErr, "group: "+doc.Url.String()+" #"+strconv.Itoa(i)+"; "+err.Error())
@@ -75,7 +78,7 @@ func ParseTopics(doc *goquery.Document, concurrency ...int) ([]*Topic, error) {
 
 			wg.Done()
 			<-topicsChan
-		}(&goquery.Selection{Nodes: []*html.Node{nodes[i]}})
+		}(i, &goquery.Selection{Nodes: []*html.Node{nodes[i]}})
 	}
 
 	wg.Wait()
@@ -103,6 +106,7 @@ func ParseTopic(s *goquery.Selection) (*Topic, error) {
 	if !exist {
 		return nil, errors.New("without url")
 	}
+
 	topicContent, err := GetTopicContent(url)
 	if err != nil {
 		// http client 错误会包含其他

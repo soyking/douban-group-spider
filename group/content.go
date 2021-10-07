@@ -2,11 +2,13 @@ package group
 
 import (
 	"errors"
-	"github.com/PuerkitoBio/goquery"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
 var (
@@ -37,16 +39,23 @@ type TopicContent struct {
 }
 
 func GetTopicContent(url string) (*TopicContent, error) {
-	resp, err := httpClient.Get(url)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("new request err: %w", err)
+	}
+
+	req = requestMiddleware(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, ErrorTopicDelete
 	}
 
-	doc, err := goquery.NewDocumentFromResponse(resp)
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -60,19 +69,18 @@ func GetTopicContent(url string) (*TopicContent, error) {
 }
 
 func ParseTopicContent(doc *goquery.Document) (*TopicContent, error) {
-	wholeBlock := doc.Find("html body div#wrapper div#content div.grid-16-8.clearfix div.article div.topic-content.clearfix")
-
-	updateTimeStr := wholeBlock.Find("div.topic-doc h3 span.color-green").Text()
+	updateTimeStr := doc.Find("#topic-content > div.topic-doc > h3 > span.create-time.color-green").Text()
 	if updateTimeStr == "" {
 		// 存在蓝色状态的帖子，感觉是一种预删除的状态，页面结构不一样，这里作帖子被删除处理
 		return nil, ErrorTopicDelete
 	}
+
 	updateTime, err := time.Parse("2006-01-02 15:04:05", updateTimeStr)
 	if err != nil {
 		return nil, err
 	}
 
-	topicBlock := wholeBlock.Find("div.topic-doc div#link-report div.topic-content")
+	topicBlock := doc.Find("#link-report > div")
 	if topicBlock.Length() == 0 {
 		return nil, errors.New("without content")
 	}
@@ -81,8 +89,7 @@ func ParseTopicContent(doc *goquery.Document) (*TopicContent, error) {
 	topicBlock.Find("p").Each(func(i int, s *goquery.Selection) {
 		content = append(content, emptyReplacer.Replace(s.Text()))
 	})
-
-	picBlock := topicBlock.Find("div.topic-figure.cc")
+	picBlock := topicBlock.Find("#link-report > div > div > div")
 	withPic := false
 	picURLs := []string{}
 	if picBlock.Length() > 0 {
@@ -95,10 +102,10 @@ func ParseTopicContent(doc *goquery.Document) (*TopicContent, error) {
 		})
 	}
 
-	likeStr := wholeBlock.Find("div#sep.sns-bar div.sns-bar-fav span.fav-num a").Text()
+	likeStr := doc.Find("#sep > div.action-react > a > span.react-num").Text()
 	like := 0
 	if likeStr != "" {
-		like, err = strconv.Atoi(strings.TrimRight(likeStr, "人"))
+		like, err = strconv.Atoi(strings.TrimSpace(likeStr))
 		if err != nil {
 			return nil, err
 		}

@@ -4,9 +4,10 @@ import "testing"
 
 func TestGetGroup(t *testing.T) {
 	content, err := GetGroup("beijingzufang")
-	if err != nil {
-		t.Error(err)
-	} else {
+	if content != nil {
 		t.Log(content.Text())
+	}
+	if err != nil {
+		t.Fatal(err)
 	}
 }
