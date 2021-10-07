@@ -32,8 +32,8 @@ func GetGroup(name string, start ...int) (*goquery.Document, error) {
 	if err != nil {
 		return nil, fmt.Errorf("new request err: %w", err)
 	}
-	req = requestMiddleware(req)
 
+	req = requestMiddleware(req)
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err

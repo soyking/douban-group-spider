@@ -54,7 +54,7 @@ func TestParseTopicsLocal(t *testing.T) {
 func TestParseTopicsRemote(t *testing.T) {
 	content, err := GetGroup("beijingzufang")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	testTopics(t, content)

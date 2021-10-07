@@ -66,7 +66,7 @@ func ParseTopics(doc *goquery.Document, concurrency ...int) ([]*Topic, error) {
 	for i := range nodes {
 		topicsChan <- 1
 		wg.Add(1)
-		go func(s *goquery.Selection) {
+		go func(i int, s *goquery.Selection) {
 			topic, err := ParseTopic(s)
 			if err != nil {
 				outErr = append(outErr, "group: "+doc.Url.String()+" #"+strconv.Itoa(i)+"; "+err.Error())
@@ -78,7 +78,7 @@ func ParseTopics(doc *goquery.Document, concurrency ...int) ([]*Topic, error) {
 
 			wg.Done()
 			<-topicsChan
-		}(&goquery.Selection{Nodes: []*html.Node{nodes[i]}})
+		}(i, &goquery.Selection{Nodes: []*html.Node{nodes[i]}})
 	}
 
 	wg.Wait()
@@ -106,6 +106,7 @@ func ParseTopic(s *goquery.Selection) (*Topic, error) {
 	if !exist {
 		return nil, errors.New("without url")
 	}
+
 	topicContent, err := GetTopicContent(url)
 	if err != nil {
 		// http client 错误会包含其他
