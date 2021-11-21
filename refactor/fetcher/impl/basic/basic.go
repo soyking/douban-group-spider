@@ -41,7 +41,7 @@ func (c *Fetcher) FetchURL(ctx context.Context, url string) (string, error) {
 	}
 }
 
-func NewFetcher(optionFuncs ...fetcherOptionFunc) (*Fetcher, error) {
+func NewFetcher(optionFuncs ...FetcherOptionFunc) (*Fetcher, error) {
 	options := defaultFetcherOptions()
 	for _, optionFunc := range optionFuncs {
 		optionFunc(options)
@@ -72,24 +72,28 @@ type fetcherOptions struct {
 	responseHandler ResponseHandlerFunc
 }
 
-type fetcherOptionFunc func(options *fetcherOptions)
+type FetcherOptionFunc func(options *fetcherOptions)
 
-func WithHTTPClient(httpClient *http.Client) fetcherOptionFunc {
+func WithHTTPClient(httpClient *http.Client) FetcherOptionFunc {
 	return func(options *fetcherOptions) {
 		options.httpClient = httpClient
 	}
 }
 
-func WithRequestHandler(requestHandler RequestHandlerFunc) fetcherOptionFunc {
+func WithRequestHandler(requestHandler RequestHandlerFunc) FetcherOptionFunc {
 	return func(options *fetcherOptions) {
 		options.requestHandler = requestHandler
 	}
 }
 
-func WithResponseHandler(responseHandler ResponseHandlerFunc) fetcherOptionFunc {
+func WithResponseHandler(responseHandler ResponseHandlerFunc) FetcherOptionFunc {
 	return func(options *fetcherOptions) {
 		options.responseHandler = responseHandler
 	}
+}
+
+func DefaultHTTPClient() *http.Client {
+	return &http.Client{}
 }
 
 func DefaultResponseHandler() ResponseHandlerFunc {
@@ -106,7 +110,7 @@ func DefaultResponseHandler() ResponseHandlerFunc {
 
 func defaultFetcherOptions() *fetcherOptions {
 	return &fetcherOptions{
-		httpClient:      &http.Client{},
+		httpClient:      DefaultHTTPClient(),
 		responseHandler: DefaultResponseHandler(),
 	}
 }
