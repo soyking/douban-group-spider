@@ -5,12 +5,11 @@ import (
 	"net/url"
 
 	"github.com/pkg/errors"
-	"github.com/soyking/douban-group-spider/refactor/fetcher/impl/basic"
 )
 
-func HTTPDynamicProxyClient(httpClient *http.Client, loader BalancerLoader) *http.Client {
-	httpClient.Transport = &http.Transport{
-		Proxy: func(req *http.Request) (*url.URL, error) {
+func HTTPDynamicProxyClient(httpClient *http.Client, loader BalancerLoader) (*http.Client, error) {
+	if transport, ok := httpClient.Transport.(*http.Transport); ok {
+		transport.Proxy = func(req *http.Request) (*url.URL, error) {
 			balancer, err := loader.Load(req)
 			if err != nil {
 				return nil, errors.Wrap(err, "load balancer")
@@ -25,14 +24,9 @@ func HTTPDynamicProxyClient(httpClient *http.Client, loader BalancerLoader) *htt
 			}
 
 			return nil, nil
-		},
+		}
+		return httpClient, nil
+	} else {
+		return nil, errors.New("unknown http.Transport")
 	}
-
-	return httpClient
-}
-
-func NewHTTPClientFetcherOptionFunc(httpClient *http.Client, loader BalancerLoader) basic.FetcherOptionFunc {
-	return basic.WithHTTPClient(
-		HTTPDynamicProxyClient(httpClient, loader),
-	)
 }

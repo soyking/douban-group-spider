@@ -19,7 +19,7 @@ func HTTPClient() *http.Client {
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return ErrorRedirect
 		},
-		Timeout: 5 * time.Second,
+		Timeout: time.Minute,
 	}
 }
 
