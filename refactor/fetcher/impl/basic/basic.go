@@ -6,10 +6,11 @@ import (
 	"net/http"
 
 	"github.com/pkg/errors"
+	"github.com/soyking/douban-group-spider/refactor/fetcher"
 )
 
 type RequestHandlerFunc func(ctx context.Context, req *http.Request) error
-type ResponseHandlerFunc func(ctx context.Context, resp *http.Response) (string, error)
+type ResponseHandlerFunc func(ctx context.Context, resp *http.Response) (io.ReadCloser, error)
 
 type Fetcher struct {
 	httpClient      *http.Client
@@ -17,31 +18,31 @@ type Fetcher struct {
 	responseHandler ResponseHandlerFunc
 }
 
-func (c *Fetcher) FetchURL(ctx context.Context, url string) (string, error) {
+func (c *Fetcher) FetchURL(ctx context.Context, url string) (io.ReadCloser, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return "", errors.Wrap(err, "new request")
+		return nil, errors.Wrap(err, "new request")
 	}
 
 	if c.requestHandler != nil {
 		if err := c.requestHandler(ctx, req); err != nil {
-			return "", errors.Wrap(err, "handle request")
+			return nil, errors.Wrap(err, "handle request")
 		}
 	}
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return "", errors.Wrap(err, "do request")
+		return nil, errors.Wrap(err, "do request")
 	}
 
-	if data, err := c.responseHandler(ctx, resp); err != nil {
-		return "", errors.Wrap(err, "handle response")
+	if stream, err := c.responseHandler(ctx, resp); err != nil {
+		return nil, errors.Wrap(err, "handle response")
 	} else {
-		return data, nil
+		return stream, nil
 	}
 }
 
-func NewFetcher(optionFuncs ...FetcherOptionFunc) (*Fetcher, error) {
+func NewFetcher(optionFuncs ...FetcherOptionFunc) (fetcher.Fetcher, error) {
 	options := defaultFetcherOptions()
 	for _, optionFunc := range optionFuncs {
 		optionFunc(options)
@@ -97,14 +98,8 @@ func DefaultHTTPClient() *http.Client {
 }
 
 func DefaultResponseHandler() ResponseHandlerFunc {
-	return func(c context.Context, resp *http.Response) (string, error) {
-		defer resp.Body.Close()
-		data, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return "", errors.Wrap(err, "read response body")
-		}
-
-		return string(data), nil
+	return func(c context.Context, resp *http.Response) (io.ReadCloser, error) {
+		return resp.Body, nil
 	}
 }
 

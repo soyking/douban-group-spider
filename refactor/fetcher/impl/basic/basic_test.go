@@ -2,6 +2,7 @@ package basic
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -20,7 +21,11 @@ func TestFetcher(t *testing.T) {
 	fetcher, err := NewFetcher()
 	assert.Nil(t, err)
 
-	data, err := fetcher.FetchURL(context.TODO(), ts.URL)
+	stream, err := fetcher.FetchURL(context.TODO(), ts.URL)
+	defer stream.Close()
 	assert.Nil(t, err)
-	assert.Equal(t, data, tsResponseBody)
+
+	data, err := io.ReadAll(stream)
+	assert.Nil(t, err)
+	assert.Equal(t, string(data), tsResponseBody)
 }

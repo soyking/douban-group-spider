@@ -1,7 +1,10 @@
 package fetcher
 
-import "context"
+import (
+	"context"
+	"io"
+)
 
 type Fetcher interface {
-	FetchURL(ctx context.Context, url string) (string, error)
+	FetchURL(ctx context.Context, url string) (io.ReadCloser, error)
 }
